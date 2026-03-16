@@ -1,0 +1,108 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+enum Role {
+  SUPER_ADMIN 
+  ADMIN     
+  RESIDENT    
+  GUARD      
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+// --- MODELS ---
+
+// Tenant is the residential. All belongs to one.
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique // 'I.E Punta Azul' for the URL
+  address   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users     User[]
+  houses    House[]
+  payments  Payment[]
+  incidents Incident[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(RESIDENT)
+  createdAt DateTime @default(now())
+
+  // Multi-tenancy
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  // Optional relation if a user owns more than one house
+  houses    House[]  @relation("OwnerHouses")
+}
+
+model House {
+  id        String   @id @default(uuid())
+  number    String   
+  street    String?
+
+  // Multi-tenancy
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  // Relations
+  ownerId   String?
+  owner     User?    @relation("OwnerHouses", fields: [ownerId], references: [id])
+  payments  Payment[]
+  incidents Incident[]
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  amount      Float
+  description String
+  status      PaymentStatus @default(PENDING)
+  dueDate     DateTime
+  paidAt      DateTime?
+
+  // Multi-tenancy
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+
+  // Relation with house
+  houseId     String
+  house       House         @relation(fields: [houseId], references: [id])
+}
+
+model Incident {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED
+  createdAt   DateTime @default(now())
+
+  // Multi-tenancy
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  // Relation with the house that makes the report
+  houseId     String
+  house       House    @relation(fields: [houseId], references: [id])
+}
