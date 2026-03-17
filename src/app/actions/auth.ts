@@ -39,3 +39,15 @@ export async function registerTenant(prevState: any, formData: FormData) {
     return { success: false, error: "Error al crear el registro" };
   }
 }
+
+export async function validateUser(email: string, pass: string) {
+  // 1. Search for the user
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return null;
+
+  // 2. Check password
+  const match = await bcrypt.compare(pass, user.password);
+  
+  // 3. Return user if password matches
+  return match ? user : null;
+}
