@@ -65,7 +65,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {/* {state?.success && (
+          {state?.success && (
             <div className="rounded-md bg-green-50 p-3">
               <p className="text-center text-sm font-medium text-green-800">
                 ¡Registro exitoso!
@@ -79,7 +79,7 @@ export default function RegisterPage() {
                 {state.message}
               </p>
             </div>
-          )} */}
+          )}
         </form>
       </div>
     </div>
