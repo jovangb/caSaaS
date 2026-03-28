@@ -9,8 +9,6 @@ const prismaClientSingleton = () => {
   return prisma;
 };
 
-console.log(PrismaClient);
-
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
